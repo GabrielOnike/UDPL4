@@ -85,4 +85,5 @@ workflows:
       - create_and_deploy_frontend
       # - configure_infrastructure
       - promote_to_production
-         requires: [create_and_deploy_frontend]
+          requires: 
+             - create_and_deploy_frontend
