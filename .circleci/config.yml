@@ -84,6 +84,6 @@ workflows:
     jobs:
       - create_and_deploy_frontend
       # - configure_infrastructure
-      - promote_to_production
+      - promote_to_production:
           requires: 
-             - create_and_deploy_frontend
+            - create_and_deploy_front_end
