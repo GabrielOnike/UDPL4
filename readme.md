@@ -1,4 +1,4 @@
-Exercise: Config and Deployment
- In this exercise, a CircleCI job will run the playbook for you to configure an EC2 instance and copy production files..
+Exercise: SMOKE TESTS
+WritING a job that performs a smoke test.
 
- The Ansible Playbook here(this folder- roles/setup...) is responsible for configuring the EC2 instance and copy over the files/index.js file.
+The current exercise is in continuation to the previous Exercise: Config and Deployment.
