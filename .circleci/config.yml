@@ -2,32 +2,43 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-commands:
+# commands:
    # Exercise - Rollback
-   destroy_environment:
-     steps:
-       - run:
-           name: Destroy environment
-           # ${CIRCLE_WORKFLOW_ID} is a Built-in environment variable 
-           # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
-           when: on_fail
-           command: |
-             aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
+  #  destroy_environment:
+  #    steps:
+  #      - run:
+  #          name: Destroy environment
+  #          # ${CIRCLE_WORKFLOW_ID} is a Built-in environment variable 
+  #          # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
+  #          when: on_fail
+  #          command: |
+  #            aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
 
 # Define a job to be invoked later in a workflow.- rollback
 jobs:
-  create_infrastructure: 
+  create_and_deploy_frontend: 
       docker:
         - image: amazon/aws-cli
       steps:
         - checkout
-        - run:
-            name: Create Cloudformation Stack
-            command: |
+        - run: |
               aws cloudformation deploy \
-                --template-file template.yml \
-                --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
-                --region us-east-1
+              --template-file cloudfront.yml \
+              --stack-name production-distro \
+              --parameter-overrides PipelineID="udpl4"
+        - run: aws s3 sync . s3://"udpl4" --delete      
+# create_infrastructure: 
+#       docker:
+#         - image: amazon/aws-cli
+#       steps:
+#         - checkout
+#         - run:
+#             name: Create Cloudformation Stack
+#             command: |
+#               aws cloudformation deploy \
+#                 --template-file template.yml \
+#                 --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
+#                 --region us-east-1                
   
   # configure_infrastructure: 
   #   docker:
@@ -46,21 +57,32 @@ jobs:
   #         command: |
   #            ansible-playbook -i inventory main.yml
   # Exercise: Smoke Testing
-  smoke_test:
-    docker:
-      - image: alpine:latest
-    steps:
-      - run:
-          name: Test job
-          # Fail the job intentionally to simulate an error.
-          command:  return 1
-      - destroy_environment 
+  # smoke_test:
+  #   docker:
+  #     - image: alpine:latest
+  #   steps:
+  #     - run:
+  #         name: Test job
+  #         # Fail the job intentionally to simulate an error.
+  #         command:  return 1
+  #     - destroy_environment 
+  promote_to_production: 
+        docker:
+          - image: amazon/aws-cli
+        steps:
+          - checkout
+          - run: |
+                aws cloudformation deploy \
+                --template-file cloudfront.yml \
+                --stack-name cloudfront \
+                --parameter-overrides PipelineID="udpl4"
 
 # Sequential workflow
 workflows:
   # Name the workflow
   myWorkflow:
     jobs:
-      - create_infrastructure
+      - create_and_deploy_frontend
       # - configure_infrastructure
-      - smoke_test
+      - promote_to_production
+         requires: [create_and_deploy_frontend]

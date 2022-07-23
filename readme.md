@@ -1,2 +1,2 @@
-Exercise: Rollback
-Write a reusable command that rolls back changes. The current exercise is in continuation to the previous Exercise: Config and Deployment.
+Exercise: Promote to Production -PCPB
+A set of jobs that promotes a new environment to production and decommissions the old environment in an automated process.
